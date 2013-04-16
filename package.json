@@ -1,0 +1,17 @@
+{
+    "name": "teentech",
+    "version": "0.0.1",
+    "description": "Teentech examples",
+    "jam": {
+        "baseUrl": "public",
+        "packageDir": "public/vendor",
+        "dependencies": {
+            "jquery": "1.9.x"
+        },
+        "config": {
+          "paths": {
+            "templates": "public/templates"
+          }
+        }
+    }
+}
