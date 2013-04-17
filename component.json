@@ -1,0 +1,17 @@
+{
+  "name": "teentech",
+  "version": "1.0.0",
+  "main": [
+    "./styles/app.css",
+    "./js/app.js",
+    "./path/to/sprite.img"
+  ],
+  "dependencies": {
+    "jquery": "~1.7.2"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components"
+  ]
+}
