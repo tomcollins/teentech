@@ -1,154 +1,420 @@
 var canvas;
+var canvasX;
+var canvasY;
 var stage;
-var screen_width;
-var screen_height;
-var bmpAnimation;
-var bmpAnimationIdle;
+var canvasWidth = 900;
+var canvasHeight = 564;
+var textMargin;
+var tileWidth = 64;
+var tileHeight = 64;
+var isStartingFirstGame;
+
+// Player
+
+var bmpPlayer;
+var bmpPlayerWidth = 100;
+var bmpPlayerHeight = 283;
+
+var playerStartX = 0;
+var playerStartY = 0;
+var playerSpeedX = 5;
+var playerSpeedY = 0.2;
+
+var isJumping = false;
+var isMovingLeft = false;
+var isMovingRight = false;
+
+// Monster
+
+var bmpMonster;
+var bmpMonsterWidth = 125;
+var bmpMonsterHeight = 240;
+
+var monsterStartX = 0;
+var monsterStartY = canvasHeight - tileHeight - bmpMonsterHeight;
+var monsterSpeedX = 5;
+
+var monsterIsEnabled = true;
+
+//Background
+
+var bmpMonster;
+
+// Gravity
+
+var gravity = 0.01;
+var gravivityIsEnabled = true;
+
+// Boundry
+
+var boundryIsEnabled = false;
+var playerMinX;
+var playerMaxX;
+
+// Misc
 
 var numberOfImagesLoaded = 0;
-
-var imgMonsterARun = new Image();
-var imgMonsterAIdle = new Image();
+var imgTileFloor = new Image();
+var imgPlayer = new Image();
+var imgMonster = new Image();
+var imgBackground = new Image();
+var gridGenerator;
+var grid;
+var lineX, lineY, playerBox;
+var isShowingGraph = true;
+var isShowingPlayerBox = true;
 
 function init() {
-    //find canvas and load images, wait for last image to load
-    canvas = document.getElementById("testCanvas");
 
-    imgMonsterARun.onload = handleImageLoad;
-    imgMonsterARun.onerror = handleImageError;
-    imgMonsterARun.src = "img/MonsterARun.png";
+    var canvasHtml = '<canvas id="mainCanvas" width="' +canvasWidth +'" height="' +canvasHeight +'" style="background-color:#607559"></canvas>';
+    $('#canvasHolder').html(canvasHtml).hide();
+    canvas = document.getElementById("mainCanvas");
+    
+    imgTileFloor.onload = handleImageLoad;
+    imgTileFloor.onerror = handleImageError;
+    imgTileFloor.src = "assets/tiles/dirt_grass.png";
+    imgPlayer.onload = handleImageLoad;
+    imgPlayer.onerror = handleImageError;
+    imgPlayer.src = "assets/doctor01.png";
+    imgMonster.onload = handleImageLoad;
+    imgMonster.onerror = handleImageError;
+    imgMonster.src = "assets/dalek.png";
+    imgBackground.onload = handleImageLoad;
+    imgBackground.onerror = handleImageError;
+    imgBackground.src = "assets/background/blue_01.jpg";
 
-    imgMonsterAIdle.onload = handleImageLoad;
-    imgMonsterAIdle.onerror = handleImageError;
-    imgMonsterAIdle.src = "img/MonsterAIdle.png";
+    textMargin = 30;
+    gridGenerator = new GridGenerator(canvasWidth, canvasHeight - tileHeight, textMargin);
+    var dataURL = gridGenerator.toDataURL();
+    gridGenerator.destroy();
+
+    canvasX = 30;
+    canvasY = 30;
+    $('#canvasHolder').css({
+        position: 'absolute',
+        top: canvasY,
+        left: canvasX
+    });
+
+    /*
+    $('#formHolder').css({
+        position: 'absolute',
+        top: canvasY + canvasHeight,
+        left: canvasX
+    });
+    */
+
+    $('#wrapper').append('<img id="grid" width="' +(canvasWidth+textMargin+textMargin) +'" height="' +(canvasHeight-tileHeight+textMargin+textMargin) +'" />');
+    $('#grid').attr('src', dataURL);
+    $('#grid').css({
+        position: 'absolute',
+        top: canvasY - textMargin,
+        left: canvasX - textMargin
+    });
+    $('#wrapper').append('<span id="playerBox"/><span id="lineX"/><span id="lineY"/>');
+    lineX = $('#lineX').hide();
+    lineY = $('#lineY').hide();
+    playerBox = $('#playerBox').hide();
+    var lineOverhang = 10;
+    lineX.css({
+        width: 1,
+        height: canvasHeight - tileHeight + lineOverhang,
+        left: canvasX,
+        top: canvasY
+    });
+    lineY.css({
+        width: canvasWidth + lineOverhang,
+        height: 1,
+        left: canvasX - lineOverhang,
+        top: canvasY + canvasHeight - tileHeight
+    });
+    playerBox.css({
+        width: bmpPlayerWidth,
+        height: bmpPlayerHeight,
+        left: canvasX,
+        top: canvasY + canvasHeight - bmpPlayerHeight
+    });
 }
 
 function handleImageLoad(e) {
     numberOfImagesLoaded++;
-
-    // We're not starting the game until all images are loaded
-    // Otherwise, you may start to draw without the resource and raise
-    // this DOM Exception: INVALID_STATE_ERR (11) on the drawImage method
-    if (numberOfImagesLoaded == 2) {
+    if (numberOfImagesLoaded == 4) {
         numberOfImagesLoaded = 0;
-        startGame();
+        $('#reset').on('click', function() {
+            reset();
+        });
+        startKeyListener();
     }
 }
 
-function reset() {
-    stage.removeAllChildren();
-    createjs.Ticker.removeAllListeners();
-    stage.update();
-}
-
-function startGame() {
-    // create a new stage and point it at our canvas:
-    stage = new createjs.Stage(canvas);
-
-    // grab canvas width and height for later calculations:
-    screen_width = canvas.width;
-    screen_height = canvas.height;
-
-    // create spritesheet and assign the associated data.
-    var spriteSheet = new createjs.SpriteSheet({
-        //image to use
-        images: [imgMonsterARun],
-        //width, height & registration point of each sprite
-        frames: { width: 64, height: 64, regX: 32, regY: 32 }, 
-        // To slow down the animation loop of the sprite, we set the frequency to 4 to slow down by a 4x factor
-        animations: {
-            walk: [0, 9, "walk", 4]
-        }
-    });
-
-    // to save file size, the loaded sprite sheet only includes left facing animations
-    // we could flip the display objects with scaleX=-1, but this is expensive in most browsers
-    // instead, we generate a new sprite sheet which includes the flipped animations
-    createjs.SpriteSheetUtils.addFlippedFrames(spriteSheet, true, false, false);
-
-    // Idle sequence of the monster
-    var spriteSheetIdle = new createjs.SpriteSheet({
-        images: [imgMonsterAIdle],
-        frames: { width: 64, height: 64, regX: 32, regY: 32 }, 
-        animations: {
-            idle: [0, 10, "idle", 4]
-        }
-    });
-
-    bmpAnimationIdle = new createjs.BitmapAnimation(spriteSheetIdle);
-
-    bmpAnimationIdle.name = "monsteridle1";
-    bmpAnimationIdle.x = 16;
-    bmpAnimationIdle.y = 32;
-
-    // create a BitmapSequence instance to display and play back the sprite sheet:
-    bmpAnimation = new createjs.BitmapAnimation(spriteSheet);
-
-    // set the registration point (the point it will be positioned and rotated around)
-    // to the center of the frame dimensions:
-    bmpAnimation.regX = bmpAnimation.spriteSheet.frameWidth / 2 | 0;
-    bmpAnimation.regY = bmpAnimation.spriteSheet.frameHeight / 2 | 0;
-
-    // start playing the first sequence:
-    // walk_h has been generated by addFlippedFrames and
-    // contained the right facing animations
-    bmpAnimation.gotoAndPlay("walk_h");   //walking from left to right
-
-    // set up a shadow. Note that shadows are ridiculously expensive. You could display hundreds
-    // of animated rats if you disabled the shadow.
-    bmpAnimation.shadow = new createjs.Shadow("#454", 0, 5, 4);
-
-    bmpAnimation.name = "monster1";
-    bmpAnimation.direction = 90;
-    bmpAnimation.vX = 1;
-    bmpAnimation.vY = 0;
-    bmpAnimation.x = 16;
-    bmpAnimation.y = 32;
-
-    // have each monster start at a specific frame
-    bmpAnimation.currentFrame = 10;
-    stage.addChild(bmpAnimation);
-
-    // we want to do some work before we update the canvas,
-    // otherwise we could use Ticker.addListener(stage);
-    createjs.Ticker.addListener(window);
-    createjs.Ticker.useRAF = true;
-    // Best Framerate targeted (60 FPS)
-    createjs.Ticker.setFPS(60);
-}
-
-//called if there is an error loading the image (usually due to a 404)
 function handleImageError(e) {
     console.log("Error Loading Image : " + e.target.src);
 }
 
+function reset() {
+    isStartingFirstGame = false;
+    $('#canvasHolder').show();
+    if (stage) {
+        stage.removeAllChildren();
+        createjs.Ticker.removeAllListeners();
+        stage.update();
+
+        isShowingGraph = true;
+        isShowingPlayerBox = true;
+        $('#grid').show();
+        lineX.show();
+        lineY.show();
+        playerBox.show();
+        playerBox.css('opacity', 1);
+    } else {
+        isStartingFirstGame = true;
+    }
+    startGame();
+
+}
+
+function startGame() {
+
+    stage = new createjs.Stage(canvas);
+
+    // Get game parameters
+
+    playerStartX = Number($('#playerStartX').val());
+    playerStartY = canvasHeight - tileHeight - bmpPlayerHeight - Number($('#playerStartY').val());
+    playerMinX = Number($('#playerMinX').val());
+    playerMaxX = Number($('#playerMaxX').val());
+
+    monsterIsEnabled = $('#monsterIsEnabled').is(':checked');
+    monsterSpeedX = Number($('#monsterSpeedX').val());
+
+    boundryIsEnabled = $('#boundryIsEnabled').is(':checked');
+    gravity = Number($('#gravity').val());
+    gravityIsEnabled = $('#gravityIsEnabled').is(':checked');
+
+    isMovingLeft = false;
+    isMovingRight = false;
+    isJumping = playerStartY + bmpPlayerHeight < canvasHeight - tileHeight;
+
+    // create background
+
+    imgPlayer.width = canvasWidth;
+    imgPlayer.height = canvasHeight;
+
+    bmpBackground = new createjs.Bitmap(imgBackground);
+    bmpBackground.name = "Background";
+    var scale = imgBackground.width > imgBackground.height ? canvasWidth / imgBackground.width : canvasHeight / imgBackground.height;
+    console.log('s', scale);
+    bmpBackground.scaleX = scale;
+    bmpBackground.scaleY = scale;
+    bmpBackground.visible = false;
+    stage.addChild(bmpBackground);
+
+    addFloorTiles();
+
+    imgPlayer.width = bmpPlayerWidth;
+    imgPlayer.height = bmpPlayerWidth;
+    imgMonster.width = bmpMonsterWidth;
+    imgMonster.height = bmpMonsterWidth;
+
+    // create monster
+
+    if (monsterIsEnabled) {
+        bmpMonster = new createjs.Bitmap(imgMonster);
+        bmpMonster.name = "Monster";
+        bmpMonster.x = monsterStartX;
+        bmpMonster.y = monsterStartY;
+        bmpMonster.direction = 'right';
+        stage.addChild(bmpMonster);
+    }
+
+    // create player
+
+    bmpPlayer = new createjs.Bitmap(imgPlayer);
+    bmpPlayer.name = "Player";
+    bmpPlayer.x = playerStartX;
+    bmpPlayer.y = playerStartY;
+    bmpPlayer.jumpTime = isJumping ? 11 : 0;
+    bmpPlayer.vX = 0;
+    bmpPlayer.vY = isJumping ? 5 : 0;
+    stage.addChild(bmpPlayer);
+
+    createjs.Ticker.addListener(window);
+    createjs.Ticker.useRAF = true;
+    createjs.Ticker.setFPS(60);
+}
+
+function addFloorTiles() {
+    var index, bmpTile;
+    var numberOfTiles = canvasWidth / tileWidth;
+    for (index = 0; index < numberOfTiles; index++) {
+        bmpTile = new createjs.Bitmap(imgTileFloor);
+        bmpTile.x = index * tileWidth;
+        bmpTile.y = canvasHeight - tileHeight;
+        stage.addChild(bmpTile);
+    }
+}
+
+function startKeyListener() {
+    $(document).keydown(function(e) {
+        if (37 === e.keyCode) { 
+            isMovingLeft = true;
+        } else if (38 === e.keyCode) { 
+            if (bmpPlayer && 0 === bmpPlayer.vY) {
+                bmpPlayer.jumpTime = 1;
+                isJumping = true;
+            }
+        } else if (39 === e.keyCode) { 
+            isMovingRight = true;
+        } else if (40 === e.keyCode) { 
+            
+        } else if (84 === e.keyCode) { 
+            if (isShowingGraph && isShowingPlayerBox) {
+                isShowingPlayerBox = false;
+                playerBox.css('opacity', 0.2);
+            } else if (isShowingGraph) {
+                isShowingGraph = false;
+                $('#grid').hide();
+                lineX.hide();
+                lineY.hide();
+                playerBox.hide();
+            } else {
+                isShowingGraph = true;
+                isShowingPlayerBox = true;
+                $('#grid').show();
+                lineX.show();
+                lineY.show();
+                playerBox.show();
+                playerBox.css('opacity', 1);
+            }
+        } else if (82 === e.keyCode) { 
+            reset();
+        }
+    }).keyup(function(e) {
+        if (37 === e.keyCode) { 
+            isMovingLeft = false;
+        } else if (38 === e.keyCode) { 
+            isJumping = false;
+        } else if (39 === e.keyCode) { 
+            isMovingRight = false;
+        } else if (40 === e.keyCode) { 
+            
+        }
+    });
+}
 function tick() {
-    // Hit testing the screen width, otherwise our sprite would disappear
-    if (bmpAnimation.x >= screen_width - 16) {
-        // We've reached the right side of our screen
-        // We need to walk left now to go back to our initial position
-        bmpAnimation.direction = -90;
-        bmpAnimation.gotoAndPlay("walk")
+
+    // is left or right key down
+    if (isMovingLeft && !isMovingRight) {
+        bmpPlayer.vX = -playerSpeedX;
+    } else if (isMovingRight && !isMovingLeft) {
+        bmpPlayer.vX = playerSpeedX;
     }
 
-    if (bmpAnimation.x < 16) {
-        // We've reached the left side of our screen
-        // We need to walk right now
-        bmpAnimation.direction = 90;
-        bmpAnimation.gotoAndStop("walk");
-        stage.removeChild(bmpAnimation);
-        bmpAnimationIdle.gotoAndPlay("idle");
-        stage.addChild(bmpAnimationIdle);
+    // horizontal deceleration 
+    if (bmpPlayer.vX !== 0) {
+        bmpPlayer.x += bmpPlayer.vX;
+        bmpPlayer.vX = bmpPlayer.vX * 0.9;
+        if (Math.abs(bmpPlayer.vX) < 1 ) {
+            bmpPlayer.vX = 0;
+        }
     }
 
-    // Moving the sprite based on the direction & the speed
-    if (bmpAnimation.direction == 90) {
-        bmpAnimation.x += bmpAnimation.vX;
-        bmpAnimation.y += bmpAnimation.vY;
+    /**
+     * Check horizontal boundries
+     */
+
+    if (boundryIsEnabled) {
+        // check the left side of screen
+        if (bmpPlayer.x < playerMinX) {
+            bmpPlayer.x = playerMinX;
+        }
+
+        // check the right side of screen
+        if (bmpPlayer.x + bmpPlayerWidth >= playerMaxX ) {
+            bmpPlayer.x = playerMaxX - bmpPlayerWidth;
+        }
     }
-    else {
-        bmpAnimation.x -= bmpAnimation.vX;
-        bmpAnimation.y -= bmpAnimation.vY;
+
+    /**
+     * Vertical position
+     */
+
+    if (gravityIsEnabled) {
+        if (isJumping && 10 >= bmpPlayer.jumpTime) {
+            bmpPlayer.vY -= playerSpeedY;
+        }
+
+        if (gravityIsEnabled && bmpPlayer.vY !== 0) {
+            bmpPlayer.vY += gravity * bmpPlayer.jumpTime;
+        }
+
+        // Update Y position based on velocity
+        if (bmpPlayer.vY !== 0) {
+            var maxChangeY = 8;
+            var changeY = bmpPlayer.vY * bmpPlayer.jumpTime;
+            if (changeY > maxChangeY) {
+                changeY = maxChangeY;
+            }
+            bmpPlayer.y += changeY;
+            bmpPlayer.jumpTime++;
+        }
+
+        // check floor 
+        var maxY = canvasHeight - tileHeight;
+        if (bmpPlayer.y + bmpPlayerHeight > maxY) {
+            bmpPlayer.y = maxY - bmpPlayerHeight;
+            bmpPlayer.vY = 0;
+        }
+    }
+
+    $('#playerX').text(parseInt(bmpPlayer.x));
+    $('#playerY').text(canvasHeight - tileHeight - parseInt(bmpPlayer.y + bmpPlayerHeight));
+
+
+    // Move Monster
+
+    if (monsterIsEnabled) {
+        if ('right' == bmpMonster.direction) {
+            bmpMonster.x += monsterSpeedX;
+        } else {
+            bmpMonster.x -= monsterSpeedX;
+        }
+
+        if (bmpMonster.x < 0) {
+            bmpMonster.x = 0;
+            bmpMonster.direction = 'right';
+        } else if (bmpMonster.x > canvasWidth - bmpMonsterWidth) {
+            bmpMonster.x = canvasWidth - bmpMonsterWidth;
+            bmpMonster.direction = 'left';
+        }
+
+        // check collision
+
+        var intersection = ndgmr.checkRectCollision(bmpMonster, bmpPlayer);
+        if ( intersection ) {
+            bmpPlayer.alpha = 0.2;
+        }
+        
+    }
+
+    lineX.css({
+        left: canvasX + bmpPlayer.x
+    });
+    lineY.css({
+        top: canvasY + bmpPlayer.y + bmpPlayerHeight
+    });
+    playerBox.css({
+        left: canvasX + bmpPlayer.x,
+        top: canvasY + bmpPlayer.y
+    });
+
+    if (isStartingFirstGame) {
+        lineX.show();
+        lineY.show();
+        playerBox.show();
+        isShowingGraph = true;
+        isShowingPlayerBox = true;
+        isStartingFirstGame = false;
     }
 
     // update the stage:

@@ -1,0 +1,71 @@
+body {
+  background: #fff;
+}
+#logo {
+  width: 100%;
+  background: #000;
+  text-align: center;
+}
+#logo img {
+  width: 280px;
+
+}
+
+
+
+#wrapper {
+  position: relative;
+  margin-left: 10px;
+}
+
+#formHolder {
+  position: absolute;
+  top: 142px;
+  left: 960px;
+  border: 1px solid #ccc;
+  padding-right: 75px;
+}
+#formHolder .control-label {
+  width: 80px;
+}
+#formHolder .controls {
+  margin-left: 100px;
+}
+input {
+  width: 80px;
+}
+
+#info {
+  position: absolute;
+  top: 430px;
+  left: 960px;
+}
+  #info img {
+    border: 1px solid #ccc;
+  }
+#lineX, #lineY, #playerBox {
+  background: red;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  display: block;
+}
+
+
+
+
+form.form-horizontal {
+  margin-top: 20px;
+}
+.control-group {
+  position: relative;
+}
+label.checkbox {
+  position: absolute;
+  top: 5px;
+  left: 310px;
+}
+/*
+label.checkbox-double-input {
+  left: 433px;
+}*/

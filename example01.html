@@ -1,18 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
-        <title>EaselJS Sprites Tutorial 03</title>
+        <title>TeenTech Example 01</title>
 
+        <link rel="stylesheet" href="styles/bootstrap.min.css" type="text/css">
+        <link rel="stylesheet" href="styles/example01.css" type="text/css">
+        
+        
+        <script src="vendor/jquery/jquery-1.9.1.min.js"></script>
+        <script src="vendor/bootstrap/bootstrap.min.js"></script>
         <script src="vendor/easeljs/easeljs-0.6.0.min.js"></script>
+        <script src="vendor/easeljs/easeljs-collision.js"></script>
+        <script src="script/GridGenerator.js"></script>
         <script src="script/example01.js"></script>
+        <script>
+            $(document).ready(function() {
+                init();
+            });
+        </script
     </head>
       
     <body>
-        <div class="canvasHolder">
-            <canvas id="mainCanvas" width="240" height="64" style="background-color:#607559"></canvas>
+
+        <div id="logo">
+            <img src="img/Doctor_Who_Logo_2012.jpg" width="280" height="112"></img>
         </div>
 
-        <button id="Start" onclick=init();>Start</button><button id="Reset" onclick=reset();>Reset</button>
+        <div id="wrapper">
+            <div id="canvasHolder"></div>
+        </div>
+
+        <div id="info">
+            <div class="media">
+                <a class="pull-left" href="#">
+                    <img class="media-object" src="assets/doctor01-64x64.png">
+                </a>
+                <div class="media-body">
+                    <h4 class="media-heading">Doctor</h4>
+                    X: <span id="playerX">0</span><br/>
+                    Y: <span id="playerY">0</span>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div id="formHolder">
+
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="playerStartX">Doctor</label>
+                    <div class="controls">
+                        <input id="playerStartX" name="playerStartX" type="text" placeholder="X"/>
+                        <input id="playerStartY" name="playerStartY" type="text" placeholder="Y"/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="playerMinX">X Boundry</label>
+                    <div class="controls">
+                        <input id="playerMinX" name="playerMinX" type="text" placeholder="Min X"/>
+                        <input id="playerMinY" name="playerMinY" type="text" placeholder="Max X"/>
+                        <label class="checkbox checkbox-double-input">
+                            <input type="checkbox" id="boundryIsEnabled">On
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="playerMinX">Monster</label>
+                    <div class="controls">
+                        <input id="monsterSpeedX" name="monsterSpeedX" type="text" placeholder="Speed"/>
+                        <label class="checkbox">
+                            <input type="checkbox" id="monsterIsEnabled">On
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="playerMinX">Gravity</label>
+                    <div class="controls">
+                        <input id="gravity" name="gravity" type="text" value="0.009"/>
+                        <label class="checkbox">
+                            <input type="checkbox" id="gravityIsEnabled">On
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <button type="submit" class="btn">Reset</button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+
 
     </body>
 </html>
