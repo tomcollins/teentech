@@ -13,7 +13,7 @@ var isStartingFirstGame;
 
 var bmpPlayer;
 var bmpPlayerWidth = 100;
-var bmpPlayerHeight = 283;
+var bmpPlayerHeight = 277;
 
 var playerStartX = 0;
 var playerStartY = 0;
@@ -26,9 +26,10 @@ var isMovingRight = false;
 
 // Monster
 
+var bmpMonsterContainer;
 var bmpMonster;
-var bmpMonsterWidth = 125;
-var bmpMonsterHeight = 240;
+var bmpMonsterWidth = 160;
+var bmpMonsterHeight = 225;
 
 var monsterStartX = 0;
 var monsterStartY = canvasHeight - tileHeight - bmpMonsterHeight;
@@ -63,6 +64,10 @@ var grid;
 var lineX, lineY, playerBox;
 var isShowingGraph = true;
 var isShowingPlayerBox = true;
+
+
+createjs.Sound.registerSound("assets/audio/exterminate.mp3", "exterminate");
+createjs.Sound.registerSound("assets/audio/jump.mp3", "jump");
 
 function init() {
 
@@ -194,6 +199,11 @@ function startGame() {
     isMovingLeft = false;
     isMovingRight = false;
     isJumping = playerStartY + bmpPlayerHeight < canvasHeight - tileHeight;
+    if (gravityIsEnabled) {
+        isJumping = playerStartY + bmpPlayerHeight < canvasHeight - tileHeight;
+    } else {
+        isJumping = false;
+    }
 
     // create background
 
@@ -203,7 +213,7 @@ function startGame() {
     bmpBackground = new createjs.Bitmap(imgBackground);
     bmpBackground.name = "Background";
     var scale = imgBackground.width > imgBackground.height ? canvasWidth / imgBackground.width : canvasHeight / imgBackground.height;
-    console.log('s', scale);
+
     bmpBackground.scaleX = scale;
     bmpBackground.scaleY = scale;
     bmpBackground.visible = false;
@@ -219,12 +229,17 @@ function startGame() {
     // create monster
 
     if (monsterIsEnabled) {
+        bmpMonsterContainer = new createjs.Container();
+        bmpMonsterContainer.x = monsterStartX;
+        bmpMonsterContainer.y = monsterStartY;
+        stage.addChild(bmpMonsterContainer);
         bmpMonster = new createjs.Bitmap(imgMonster);
         bmpMonster.name = "Monster";
-        bmpMonster.x = monsterStartX;
-        bmpMonster.y = monsterStartY;
         bmpMonster.direction = 'right';
-        stage.addChild(bmpMonster);
+        bmpMonsterContainer.addChild(bmpMonster);
+        $('#info-monster').show();
+    } else {
+        $('#info-monster').hide();
     }
 
     // create player
@@ -234,6 +249,7 @@ function startGame() {
     bmpPlayer.x = playerStartX;
     bmpPlayer.y = playerStartY;
     bmpPlayer.jumpTime = isJumping ? 11 : 0;
+    bmpPlayer.isAlive = true;
     bmpPlayer.vX = 0;
     bmpPlayer.vY = isJumping ? 5 : 0;
     stage.addChild(bmpPlayer);
@@ -258,15 +274,19 @@ function startKeyListener() {
     $(document).keydown(function(e) {
         if (37 === e.keyCode) { 
             isMovingLeft = true;
+            e.preventDefault();
         } else if (38 === e.keyCode) { 
             if (bmpPlayer && 0 === bmpPlayer.vY) {
                 bmpPlayer.jumpTime = 1;
                 isJumping = true;
+                createjs.Sound.play('jump');
             }
+            e.preventDefault();
         } else if (39 === e.keyCode) { 
             isMovingRight = true;
+            e.preventDefault();
         } else if (40 === e.keyCode) { 
-            
+            e.preventDefault();
         } else if (84 === e.keyCode) { 
             if (isShowingGraph && isShowingPlayerBox) {
                 isShowingPlayerBox = false;
@@ -286,8 +306,9 @@ function startKeyListener() {
                 playerBox.show();
                 playerBox.css('opacity', 1);
             }
-        } else if (82 === e.keyCode) { 
+        } else if (69 === e.keyCode) { 
             reset();
+            e.preventDefault();
         }
     }).keyup(function(e) {
         if (37 === e.keyCode) { 
@@ -339,7 +360,7 @@ function tick() {
      * Vertical position
      */
 
-    if (gravityIsEnabled) {
+    //if (gravityIsEnabled) {
         if (isJumping && 10 >= bmpPlayer.jumpTime) {
             bmpPlayer.vY -= playerSpeedY;
         }
@@ -365,36 +386,57 @@ function tick() {
             bmpPlayer.y = maxY - bmpPlayerHeight;
             bmpPlayer.vY = 0;
         }
-    }
-
-    $('#playerX').text(parseInt(bmpPlayer.x));
-    $('#playerY').text(canvasHeight - tileHeight - parseInt(bmpPlayer.y + bmpPlayerHeight));
-
+    //}
 
     // Move Monster
 
     if (monsterIsEnabled) {
         if ('right' == bmpMonster.direction) {
-            bmpMonster.x += monsterSpeedX;
+            bmpMonsterContainer.x += monsterSpeedX;
         } else {
-            bmpMonster.x -= monsterSpeedX;
+            bmpMonsterContainer.x -= monsterSpeedX;
         }
 
-        if (bmpMonster.x < 0) {
-            bmpMonster.x = 0;
+        if (bmpMonsterContainer.x < 0) {
+            bmpMonsterContainer.x = 0;
             bmpMonster.direction = 'right';
-        } else if (bmpMonster.x > canvasWidth - bmpMonsterWidth) {
-            bmpMonster.x = canvasWidth - bmpMonsterWidth;
+            bmpMonster.scaleX = 1;
+            bmpMonster.x = 0;
+        } else if (bmpMonsterContainer.x > canvasWidth - bmpMonsterWidth) {
+            bmpMonsterContainer.x = canvasWidth - bmpMonsterWidth;
             bmpMonster.direction = 'left';
+            bmpMonster.scaleX = -1;
+            bmpMonster.x = bmpMonsterWidth;
         }
 
         // check collision
 
-        var intersection = ndgmr.checkRectCollision(bmpMonster, bmpPlayer);
+        var intersection = ndgmr.checkRectCollision(bmpMonsterContainer, bmpPlayer);
         if ( intersection ) {
-            bmpPlayer.alpha = 0.2;
+            if (bmpPlayer.isAlive) {
+                createjs.Sound.play('exterminate');
+                bmpPlayer.alpha = 0;
+                bmpPlayer.isAlive = false;
+                setTimeout(function() {
+                    bmpPlayer.x = playerStartX;
+                    bmpPlayer.y = playerStartY;
+                    bmpPlayer.alpha = 0.3;
+                    setTimeout(function() {
+                        bmpPlayer.isAlive = true;
+                        bmpPlayer.alpha = 1;
+                    }, 2000);
+                }, 3000)
+            }
         }
         
+    }
+
+    $('#playerX').text(parseInt(bmpPlayer.x));
+    $('#playerY').text(canvasHeight - tileHeight - parseInt(bmpPlayer.y + bmpPlayerHeight));
+
+    if (monsterIsEnabled) {
+        $('#monsterX').text(parseInt(bmpMonsterContainer.x));
+        $('#monsterY').text(canvasHeight - tileHeight - parseInt(bmpMonsterContainer.y + bmpMonsterHeight));
     }
 
     lineX.css({

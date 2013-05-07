@@ -9,6 +9,7 @@
         
         <script src="vendor/jquery/jquery-1.9.1.min.js"></script>
         <script src="vendor/bootstrap/bootstrap.min.js"></script>
+        <script src="vendor/soundjs/soundjs-0.4.0.min.js"></script>
         <script src="vendor/easeljs/easeljs-0.6.0.min.js"></script>
         <script src="vendor/easeljs/easeljs-collision.js"></script>
         <script src="script/GridGenerator.js"></script>
@@ -36,9 +37,19 @@
                     <img class="media-object" src="assets/doctor01-64x64.png">
                 </a>
                 <div class="media-body">
-                    <h4 class="media-heading">Doctor</h4>
+                    <h4 class="media-heading">The Doctor</h4>
                     X: <span id="playerX">0</span><br/>
                     Y: <span id="playerY">0</span>
+                </div>
+            </div>
+            <div id="info-monster" class="media">
+                <a class="pull-left" href="#">
+                    <img class="media-object" src="assets/dalek-64x64.png">
+                </a>
+                <div class="media-body">
+                    <h4 class="media-heading">Monster</h4>
+                    X: <span id="monsterX">0</span><br/>
+                    Y: <span id="monsterX">0</span>
                 </div>
             </div>
         </div>
@@ -49,17 +60,17 @@
 
             <form class="form-horizontal">
                 <div class="control-group">
-                    <label class="control-label" for="playerStartX">Doctor</label>
+                    <label class="control-label" for="playerStartX">The Doctor</label>
                     <div class="controls">
                         <input id="playerStartX" name="playerStartX" type="text" placeholder="X"/>
                         <input id="playerStartY" name="playerStartY" type="text" placeholder="Y"/>
                     </div>
                 </div>
                 <div class="control-group">
-                    <label class="control-label" for="playerMinX">X Boundry</label>
+                    <label class="control-label" for="playerMinX">X Boundary</label>
                     <div class="controls">
                         <input id="playerMinX" name="playerMinX" type="text" placeholder="Min X"/>
-                        <input id="playerMinY" name="playerMinY" type="text" placeholder="Max X"/>
+                        <input id="playerMaxX" name="playerMaxX" type="text" placeholder="Max X"/>
                         <label class="checkbox checkbox-double-input">
                             <input type="checkbox" id="boundryIsEnabled">On
                         </label>
@@ -83,11 +94,13 @@
                         </label>
                     </div>
                 </div>
+                <!--
                 <div class="control-group">
                     <div class="controls">
                         <button type="submit" class="btn">Reset</button>
                     </div>
                 </div>
+                -->
             </form>
 
         </div>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>TeenTech Example 02</title>
+
+        <link rel="stylesheet" href="styles/bootstrap.min.css" type="text/css">
+        <link rel="stylesheet" href="styles/example01.css" type="text/css">
+
+        <script src="vendor/jquery/jquery-1.9.1.min.js"></script>
+        <script src="vendor/soundjs/soundjs-0.4.0.min.js"></script>
+        <script src="vendor/tweenjs/tweenjs-0.4.0.min.js"></script>
+        <script src="vendor/threejs/threejs.min.js"></script>
+        <script src="vendor/threejs/ImprovedNoise.js"></script>
+        <script src="vendor/threejs/shaders/ConvolutionShader.js"></script>
+        <script src="vendor/threejs/shaders/CopyShader.js"></script>
+        <script src="vendor/threejs/shaders/FilmShader.js"></script>
+        <script src="vendor/threejs/shaders/DotScreenShader.js"></script>
+        <script src="vendor/threejs/shaders/RGBShiftShader.js"></script>
+        <script src="vendor/threejs/shaders/BadTVShader.js"></script>
+        <script src="vendor/threejs/shaders/StaticShader.js"></script>
+        <script src="vendor/threejs/postprocessing/EffectComposer.js"></script>
+        <script src="vendor/threejs/postprocessing/ShaderPass.js"></script>
+        <script src="vendor/threejs/postprocessing/MaskPass.js"></script>
+        <script src="vendor/threejs/postprocessing/RenderPass.js"></script>
+        <script src="vendor/threejs/postprocessing/BloomPass.js"></script>
+        <script src="vendor/threejs/postprocessing/FilmPass.js"></script>
+        <script src="vendor/bootstrap/bootstrap.min.js"></script>
+        <script src="script/example02.js"></script>
+        <script>
+            $(document).ready(function() {
+                init();
+            });
+        </script
+    </head>
+      
+    <body>
+
+        <div id="logo">
+            <img src="img/Doctor_Who_Logo_2012.jpg" width="280" height="112"></img>
+        </div>
+
+        <div id="wrapper">
+            <div id="camera-viewfinder"></div>
+            <div id="threeHolder"></div>
+        </div>
+
+        <div id="info" class="example02">
+            <div class="media">
+                <a class="pull-left" href="#">
+                    <img class="media-object" src="assets/tardis-64x64.png">
+                </a>
+                <div class="media-body">
+                    <h4 class="media-heading">The Tardis</h4>
+                    X: <span id="playerX">0</span><br/>
+                    Y: <span id="playerY">0</span><br/>
+                    Z: <span id="playerZ">0</span>
+                </div>
+            </div>
+            <div class="media">
+                <a class="pull-left" href="#">
+                    <img class="media-object" src="assets/camera-64x64.png">
+                </a>
+                <div class="media-body">
+                    <h4 class="media-heading">Camera</h4>
+                    X: <span id="cameraX">0</span><br/>
+                    Y: <span id="cameraY">0</span><br/>
+                    Z: <span id="cameraZ">0</span>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div id="formHolder">
+
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="playerStartX">The Tardis</label>
+                    <div class="controls controls-three">
+                        <input id="playerStartX" name="playerStartX" type="text" placeholder="X"/>
+                        <input id="playerStartY" name="playerStartY" type="text" placeholder="Y"/>
+                        <input id="playerStartZ" name="playerStartZ" type="text" placeholder="Z"/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="playerSpeedZ">Speed Z</label>
+                    <div class="controls">
+                        <input id="playerSpeedZ" name="playerSpeedZ" type="text" value="0"/>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+
+
+    </body>
+</html>

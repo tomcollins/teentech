@@ -37,11 +37,17 @@ input {
 
 #info {
   position: absolute;
-  top: 430px;
+  top: 380px;
   left: 960px;
 }
+  #info.example02 {
+    top: 285px;
+  }
   #info img {
     border: 1px solid #ccc;
+  }
+  #info-monster {
+    display: none;
   }
 #lineX, #lineY, #playerBox {
   background: red;
@@ -65,7 +71,29 @@ label.checkbox {
   top: 5px;
   left: 310px;
 }
+.controls-three input {
+  width: 40px;
+}
 /*
 label.checkbox-double-input {
   left: 433px;
 }*/
+
+
+
+#threeHolder {
+  background: #000;
+  width: 900px;
+  height: 540px;
+  margin-left: 20px;
+  margin-top: 30px;
+}
+
+#camera-viewfinder {
+  background: transparent url(../assets/camera-viewfinder.png) no-repeat;
+  width: 900px;
+  height: 540px;
+  left: 20px;
+  position: absolute;
+  display: none;
+}
